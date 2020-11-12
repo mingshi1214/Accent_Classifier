@@ -18,6 +18,11 @@ class Augment:
         self.mfcc_data = []
         self.bands = 128
         self.frames = 128
+        self.english = 0 
+        self.hindi = 0
+        self.mandarin = 0
+        self.tagalog = 0
+        self.samples = 1000
 
     def windows(self,data,window_size):
         start = 0 
@@ -39,30 +44,55 @@ class Augment:
         feature = log_specgrams
         return np.array(feature)
         
-    def save_data(self,data,abs_dir,file_name):
+    def save_data(self,data,abs_dir,sub_dir, file_name):
         #speech,s = librosa.load(file_path)
         #mfcc = librosa.feature.melspectrogram(y = speech,sr = s) 
         #logspec = librosa.amplitude_to_db(mfcc)
-        new_sub_dir = "data_mfcc"
-        save_path = os.path.join(abs_dir,)
-        pylab.axis('off') # no axis
-        pylab.axes([0., 0., 1., 1.], frameon=False, xticks=[], yticks=[]) #
-        librosa.display.specshow(logspec)
+        elems = sub_dir.split('/')
+        new_sub_dir = os.path.join("data_mfcc", elems[1])
+        if elems[1] == "english" :
+            num = self.english
+            self.english += 1
+            if self.english > self.samples:
+                return True 
+        if elems[1] == "hindi":
+            num = self.hindi
+            self.hindi += 1
+            if self.hindi > self.samples:
+                return True
+        if elems[1] == "mandarin":
+            num = self.mandarin
+            self.mandarin += 1 
+            if self.mandarin > self.samples:
+                return True
+        if elems[1] == "tagalog":
+            num = self.tagalog
+            self.tagalog += 1 
+            if self.tagalog > self.samples:
+                return True
+        name_only = file_name.split(".mp3")[0]
+        new_filename = name_only + "_" + str(num)
+        path = [abs_dir,new_sub_dir,new_filename]
+        save_path = os.path.join(*path)
+        print(save_path)
+        pylab.axis('off')
+        pylab.axes([0., 0., 1., 1.], frameon=False, xticks=[], yticks=[])
+        librosa.display.specshow(data)
         pylab.savefig(save_path, bbox_inches=None, pad_inches=0)
         pylab.close()
         return True 
     
-    def uniform_split_clip(self, abs_dir, sub_dir, file_name, duration):
+    def uniform_clip_split(self, abs_dir, sub_dir, file_name, duration):
         path = [abs_dir,sub_dir,file_name] 
         file_path = os.path.join(*path)
         speech,s = librosa.load(file_path)
         num_frames = int(duration*s)
         for (start,end) in self.windows(librosa.get_duration(speech),num_frames):
-            if (len(speech[start:end]) == window_size):
+            if (len(speech[start:end]) == num_frames):
                 clip = speech[start:end]
-                mfcc = self.get_MFCC(clip,self.bands,self.frames)
+                mfcc = self.get_MFCC(clip)
                 self.save_data(mfcc,abs_dir,sub_dir,file_name)
-                self.mfcc_data.append(mfcc)
+        return True 
         
 
 
@@ -71,10 +101,10 @@ class Augment:
 
 
 data = Augment()
-#data.get_MFCC(os.getcwd(), "data_specific", "english/english1.mp3")
-#data.visualize_data(os.path.join(os.getcwd(),"data_specific/english/english1.mp3"))
-data.uniform_split_clip(os.getcwd(), "data_specific", "english/english1.mp3",1)    
+print(data.get_MFCC(os.getcwd(), "data_specific/english", "english1.mp3"))
 
+#data.visualize_data(os.path.join(os.getcwd(),"data_specific/english/english1.mp3"))
+#data.uniform_clip_split(os.getcwd(), "data_specific/english", "english1.mp3",0.5)    
 
 
     
